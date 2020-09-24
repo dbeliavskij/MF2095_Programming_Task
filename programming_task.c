@@ -8,10 +8,13 @@ struct Readings {
 
 struct Readings_array {
 	struct Readings readings[10];
-	int max;
-	int min;
+	int max_temp;
+	int min_temp;
+	int max_hum;
+	int min_hum;
 	int log_counter;
-	float avg;
+	float avg_temp;
+	float avg_hum;
 };
 
 void Readings_array_add_new_value (struct Readings_array *data_ptr, long *input_ptr)
@@ -32,49 +35,49 @@ void Readings_array_add_new_value (struct Readings_array *data_ptr, long *input_
 
 void Readings_array_average(struct Readings_array *data_ptr)
 {
-	int sum = 0;
+	int sum_temp = 0;
 	for (int i = 0; i < data_ptr->log_counter; i++) {
-		sum += data_ptr->readings[i].temp;
+		sum_temp += data_ptr->readings[i].temp;
 	}
-	data_ptr->avg = ((float)sum/data_ptr->log_counter);
+	data_ptr->avg_temp = ((float)sum_temp/data_ptr->log_counter);
 	if (data_ptr->log_counter == 0) {
 		printf("Average Temperature: N/A\n");
 	}
 	else {
-		printf("Average Temperature: %.2f\n", data_ptr->avg);
+		printf("Average Temperature: %.2f\n", data_ptr->avg_temp);
 	}
 
 }
 
 void Readings_array_max(struct Readings_array *data_ptr)
 {
-	data_ptr->max = data_ptr->readings[0].temp;
+	data_ptr->max_temp = data_ptr->readings[0].temp;
 	for (int i = 0; i < data_ptr->log_counter; i++) {
-		if (data_ptr->max < data_ptr->readings[i].temp) {
-			data_ptr->max = data_ptr->readings[i].temp;
+		if (data_ptr->max_temp < data_ptr->readings[i].temp) {
+			data_ptr->max_temp = data_ptr->readings[i].temp;
 		}
 	}
 	if (data_ptr->log_counter == 0) {
 		printf("Maximum Temperature: N/A\n");
 	}
 	else {
-		printf("Maximum Temperature: %d\n", data_ptr->max);
+		printf("Maximum Temperature: %d\n", data_ptr->max_temp);
 	}
 }
 
 void Readings_array_min(struct Readings_array *data_ptr)
 {
-	data_ptr->min = data_ptr->readings[0].temp;
+	data_ptr->min_temp = data_ptr->readings[0].temp;
 	for (int i = 0; i < data_ptr->log_counter; i++) {
-		if (data_ptr->min > data_ptr->readings[i].temp) {
-			data_ptr->min = data_ptr->readings[i].temp;
+		if (data_ptr->min_temp > data_ptr->readings[i].temp) {
+			data_ptr->min_temp = data_ptr->readings[i].temp;
 		}
 	}
 	if (data_ptr->log_counter == 0) {
 		printf("Minimum Temperature: N/A\n");
 	}
 	else {
-		printf("Minimum Temperature: %d\n", data_ptr->min);
+		printf("Minimum Temperature: %d\n", data_ptr->min_temp);
 	}
 }
 
@@ -91,11 +94,13 @@ int main(int argc, char *argv[])
 	struct Readings_array data;
 	data.readings[0].hum = 0;
 	data.readings[0].temp = 0;
-	data.avg = 0;
+	data.avg_temp = 0;
+	data.avg_hum = 0;
 	data.log_counter = 0;
-	data.max = 0;
-	data.min = 0;
-
+	data.max_temp = 0;
+	data.min_temp = 0;
+	data.max_hum = 0;
+	data.min_hum = 0;
 	struct Readings_array *data_ptr = &data;
 
 	char input[20] = { '\0' };
