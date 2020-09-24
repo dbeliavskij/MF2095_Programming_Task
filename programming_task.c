@@ -18,8 +18,10 @@ void Readings_array_add_new_value (struct Readings_array *data_ptr, long *input_
 {
 	if (data_ptr->log_counter < 10) {
 
-		data_ptr->readings[data_ptr->log_counter].temp = *input_ptr & 0x3FFFFFF;
+		data_ptr->readings[data_ptr->log_counter].temp = *input_ptr & 0x1FFF;
+		data_ptr->readings[data_ptr->log_counter].hum = (*input_ptr & 0x3FFE000)>>13;
 		printf("Received Temperature: %d\n", data_ptr->readings[data_ptr->log_counter].temp);
+		printf("Received Humidity: %d\n", data_ptr->readings[data_ptr->log_counter].hum);
 		(data_ptr->log_counter)++;
 	}
 	else {
