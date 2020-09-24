@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void add_new_value (int *log_counter_ptr, int *temperature_ptr, char *input_ptr)
+void add_new_value (int *temperature_ptr, int *log_counter_ptr, long *input_ptr)
 {
 	if (*log_counter_ptr < 10) {
 
-		temperature_ptr[*log_counter_ptr] = atoi(input_ptr+1);
+		temperature_ptr[*log_counter_ptr] = *input_ptr & 0x3FFFFFF;
 		printf("Received Temperature: %d\n", temperature_ptr[*log_counter_ptr]);
 		(*log_counter_ptr)++;
 	}
@@ -75,44 +75,51 @@ int main(int argc, char *argv[])
 	int max = 0;
 	int min = 0;
 	int log_counter = 0;
-	char input[5] = { '\0' };
+	char input[20] = { '\0' };
 	int sum = 0;
+	long input_num = 0;
+	long type = 0;
 
 	int *log_counter_ptr = &log_counter;
 	int *temperature_ptr = temperature;
-	char *input_ptr = input;
+	long *input_ptr = &input_num;
 	int *sum_ptr = &sum;
 	int *max_ptr = &max;
 	int *min_ptr = &min;
-
+	char *end_char;
 	
 beg:;
-	fgets(input, 5, stdin);
-		
+	input[0] = '\0';
+	if (fgets(input, 20, stdin) == NULL) {
+		printf("Input Error\n");
+	}
+	input_num = strtol(input, &end_char, 16);
+	type = input_num & 0x1C000000;
+	type = type >> 26;		
 	
-	switch(input[0]) {
+	switch(type) {
 
-		case 'T':
-			add_new_value(log_counter_ptr, temperature_ptr, input_ptr);
+		case 0:
+			add_new_value(temperature_ptr, log_counter_ptr, input_ptr);
 			break;
 
-		case 'A':
+		case 0x2:
 			average_temperature(temperature_ptr, log_counter_ptr, sum_ptr);
 			break;
 
-		case 'X':
+		case 0x4:
 			max_temperature(temperature_ptr, max_ptr, log_counter_ptr);
 			break;
 
-		case 'N':
+		case 0x3:
 			min_temperature(temperature_ptr, min_ptr, log_counter_ptr);
 			break;
 
-		case 'L':
+		case 0x5:
 			print_log_entries(temperature_ptr, log_counter_ptr);
 			break;
 		
-		case 'Q':
+		case 0x6:
 			printf("Exiting...\n");
 			return 0;
 
