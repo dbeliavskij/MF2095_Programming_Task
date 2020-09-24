@@ -57,16 +57,22 @@ void Readings_array_average(struct Readings_array *data_ptr)
 void Readings_array_max(struct Readings_array *data_ptr)
 {
 	data_ptr->max_temp = data_ptr->readings[0].temp;
+	data_ptr->max_hum = data_ptr->readings[0].hum;
 	for (int i = 0; i < data_ptr->log_counter; i++) {
 		if (data_ptr->max_temp < data_ptr->readings[i].temp) {
 			data_ptr->max_temp = data_ptr->readings[i].temp;
 		}
+		if (data_ptr->max_hum < data_ptr->readings[i].hum) {
+			data_ptr->max_hum = data_ptr->readings[i].hum;
+		}
 	}
 	if (data_ptr->log_counter == 0) {
 		printf("Maximum Temperature: N/A\n");
+		printf("Maximum Humidity: N/A\n");
 	}
 	else {
 		printf("Maximum Temperature: %d\n", data_ptr->max_temp);
+		printf("Maximum Humidity: %d\n", data_ptr->max_hum);
 	}
 }
 
