@@ -102,7 +102,7 @@ void Readings_array_print(struct Readings_array *data_ptr)
 {
 	printf("Log: %d entries\n", data_ptr->log_counter);
 	for (int i = 0; i < data_ptr->log_counter; i++) {
-		printf("Temperature: %d\n", data_ptr->readings[i].temp);
+		printf("Temperature: %d; Humidity: %d\n", data_ptr->readings[i].temp, data_ptr->readings[i].hum);
 	}
 }
 
