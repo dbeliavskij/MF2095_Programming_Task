@@ -1,13 +1,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void add_new_value (int *temperature_ptr, int *log_counter_ptr, long *input_ptr)
-{
-	if (*log_counter_ptr < 10) {
+struct Readings {
+	int temp;
+	int hum;
+};
 
-		temperature_ptr[*log_counter_ptr] = *input_ptr & 0x3FFFFFF;
-		printf("Received Temperature: %d\n", temperature_ptr[*log_counter_ptr]);
-		(*log_counter_ptr)++;
+struct Readings_array {
+	struct Readings readings[10];
+	int max;
+	int min;
+	int log_counter;
+	float avg;
+};
+
+void Readings_array_add_new_value (struct Readings_array *data_ptr, long *input_ptr)
+{
+	if (data_ptr->log_counter < 10) {
+
+		data_ptr->readings[data_ptr->log_counter].temp = *input_ptr & 0x3FFFFFF;
+		printf("Received Temperature: %d\n", data_ptr->readings[data_ptr->log_counter].temp);
+		(data_ptr->log_counter)++;
 	}
 	else {
 		printf("Log Full\n");
@@ -15,77 +28,79 @@ void add_new_value (int *temperature_ptr, int *log_counter_ptr, long *input_ptr)
 
 }
 
-void average_temperature(int *temperature_ptr, int *log_counter_ptr, int *sum_ptr)
+void Readings_array_average(struct Readings_array *data_ptr)
 {
-	for (int i = 0; i < *log_counter_ptr; i++) {
-		(*sum_ptr) += temperature_ptr[i];
+	int sum = 0;
+	for (int i = 0; i < data_ptr->log_counter; i++) {
+		sum += data_ptr->readings[i].temp;
 	}
-	if (*log_counter_ptr == 0) {
+	data_ptr->avg = ((float)sum/data_ptr->log_counter);
+	if (data_ptr->log_counter == 0) {
 		printf("Average Temperature: N/A\n");
 	}
 	else {
-		printf("Average Temperature: %.2f\n", (float)(*sum_ptr)/(*log_counter_ptr));
+		printf("Average Temperature: %.2f\n", data_ptr->avg);
 	}
 
 }
 
-void max_temperature(int *temperature_ptr, int *max_ptr, int *log_counter_ptr)
+void Readings_array_max(struct Readings_array *data_ptr)
 {
-	*max_ptr = temperature_ptr[0];
-	for (int i = 0; i < *log_counter_ptr; i++) {
-		if (*max_ptr < temperature_ptr[i]) {
-			*max_ptr = temperature_ptr[i];
+	data_ptr->max = data_ptr->readings[0].temp;
+	for (int i = 0; i < data_ptr->log_counter; i++) {
+		if (data_ptr->max < data_ptr->readings[i].temp) {
+			data_ptr->max = data_ptr->readings[i].temp;
 		}
 	}
-	if (*log_counter_ptr == 0) {
+	if (data_ptr->log_counter == 0) {
 		printf("Maximum Temperature: N/A\n");
 	}
 	else {
-		printf("Maximum Temperature: %d\n", *max_ptr);
+		printf("Maximum Temperature: %d\n", data_ptr->max);
 	}
 }
 
-void min_temperature(int *temperature_ptr, int *min_ptr, int *log_counter_ptr)
+void Readings_array_min(struct Readings_array *data_ptr)
 {
-	*min_ptr = temperature_ptr[0];
-	for (int i = 0; i < *log_counter_ptr; i++) {
-		if (*min_ptr > temperature_ptr[i]) {
-			*min_ptr = temperature_ptr[i];
+	data_ptr->min = data_ptr->readings[0].temp;
+	for (int i = 0; i < data_ptr->log_counter; i++) {
+		if (data_ptr->min > data_ptr->readings[i].temp) {
+			data_ptr->min = data_ptr->readings[i].temp;
 		}
 	}
-	if (*log_counter_ptr == 0) {
+	if (data_ptr->log_counter == 0) {
 		printf("Minimum Temperature: N/A\n");
 	}
 	else {
-		printf("Minimum Temperature: %d\n", *min_ptr);
+		printf("Minimum Temperature: %d\n", data_ptr->min);
 	}
 }
 
-void print_log_entries(int *temperature_ptr, int *log_counter_ptr)
+void Readings_array_print(struct Readings_array *data_ptr)
 {
-	printf("Log: %d entries\n", *log_counter_ptr);
-	for (int i = 0; i < *log_counter_ptr; i++) {
-		printf("Temperature: %d\n", temperature_ptr[i]);
+	printf("Log: %d entries\n", data_ptr->log_counter);
+	for (int i = 0; i < data_ptr->log_counter; i++) {
+		printf("Temperature: %d\n", data_ptr->readings[i].temp);
 	}
 }
 
 int main(int argc, char *argv[])
 {
-	int temperature[10] = { 0 };
-	int max = 0;
-	int min = 0;
-	int log_counter = 0;
+	struct Readings_array data;
+	data.readings[0].hum = 0;
+	data.readings[0].temp = 0;
+	data.avg = 0;
+	data.log_counter = 0;
+	data.max = 0;
+	data.min = 0;
+
+	struct Readings_array *data_ptr = &data;
+
 	char input[20] = { '\0' };
-	int sum = 0;
 	long input_num = 0;
 	long type = 0;
 
-	int *log_counter_ptr = &log_counter;
-	int *temperature_ptr = temperature;
 	long *input_ptr = &input_num;
-	int *sum_ptr = &sum;
-	int *max_ptr = &max;
-	int *min_ptr = &min;
 	char *end_char;
 	
 beg:;
@@ -100,23 +115,23 @@ beg:;
 	switch(type) {
 
 		case 0:
-			add_new_value(temperature_ptr, log_counter_ptr, input_ptr);
+			Readings_array_add_new_value(data_ptr, input_ptr);
 			break;
 
 		case 0x2:
-			average_temperature(temperature_ptr, log_counter_ptr, sum_ptr);
+			Readings_array_average(data_ptr);
 			break;
 
 		case 0x4:
-			max_temperature(temperature_ptr, max_ptr, log_counter_ptr);
+			Readings_array_max(data_ptr);
 			break;
 
 		case 0x3:
-			min_temperature(temperature_ptr, min_ptr, log_counter_ptr);
+			Readings_array_min(data_ptr);
 			break;
 
 		case 0x5:
-			print_log_entries(temperature_ptr, log_counter_ptr);
+			Readings_array_print(data_ptr);
 			break;
 		
 		case 0x6:
