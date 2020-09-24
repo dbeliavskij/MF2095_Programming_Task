@@ -36,15 +36,20 @@ void Readings_array_add_new_value (struct Readings_array *data_ptr, long *input_
 void Readings_array_average(struct Readings_array *data_ptr)
 {
 	int sum_temp = 0;
+	int sum_hum = 0;
 	for (int i = 0; i < data_ptr->log_counter; i++) {
 		sum_temp += data_ptr->readings[i].temp;
+		sum_hum += data_ptr->readings[i].hum;
 	}
 	data_ptr->avg_temp = ((float)sum_temp/data_ptr->log_counter);
+	data_ptr->avg_hum = ((float)sum_hum/data_ptr->log_counter);
 	if (data_ptr->log_counter == 0) {
 		printf("Average Temperature: N/A\n");
+		printf("Average Humidity: N/A\n");
 	}
 	else {
 		printf("Average Temperature: %.2f\n", data_ptr->avg_temp);
+		printf("Average Humidity: %.2f\n", data_ptr->avg_hum);
 	}
 
 }
