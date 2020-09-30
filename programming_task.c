@@ -17,6 +17,26 @@ struct Readings_array {
 	struct Readings readings[10];
 };
 
+struct Readings_array *Contstructor ()
+{
+	struct Readings_array *data = malloc(sizeof(struct Readings_array));
+	data->readings[0].hum = 0;
+	data->readings[0].temp = 0;
+	data->avg_temp = 0;
+	data->avg_hum = 0;
+	data->log_counter = 0;
+	data->max_temp = 0;
+	data->min_temp = 0;
+	data->max_hum = 0;
+	data->min_hum = 0;
+	return data;
+}
+
+void Deconstructor (struct Readings_array *object)
+{
+	free(object);
+}
+
 void Readings_array_add_new_value (struct Readings_array *data_ptr, long *input_ptr)
 {
 	if (data_ptr->log_counter < 10) {
@@ -108,17 +128,7 @@ void Readings_array_print(struct Readings_array *data_ptr)
 
 int main(int argc, char *argv[])
 {
-	struct Readings_array data;
-	data.readings[0].hum = 0;
-	data.readings[0].temp = 0;
-	data.avg_temp = 0;
-	data.avg_hum = 0;
-	data.log_counter = 0;
-	data.max_temp = 0;
-	data.min_temp = 0;
-	data.max_hum = 0;
-	data.min_hum = 0;
-	struct Readings_array *data_ptr = &data;
+	struct Readings_array *data_ptr = Contstructor();
 
 	char input[20] = { '\0' };
 	long input_num = 0;
@@ -177,6 +187,7 @@ beg:;
 		
 		case 0x6:
 			printf("Exiting...\n");
+			Deconstructor(data_ptr);
 			return 0;
 
 		case 0x7:
