@@ -7,7 +7,6 @@ struct Readings {
 };
 
 struct Readings_array {
-	struct Readings readings[10];
 	int max_temp;
 	int min_temp;
 	int max_hum;
@@ -15,6 +14,7 @@ struct Readings_array {
 	int log_counter;
 	float avg_temp;
 	float avg_hum;
+	struct Readings readings[10];
 };
 
 void Readings_array_add_new_value (struct Readings_array *data_ptr, long *input_ptr)
@@ -126,6 +126,7 @@ int main(int argc, char *argv[])
 
 	long *input_ptr = &input_num;
 	char *end_char;
+	_Bool array_initialized = 0;
 	
 beg:;
 	input[0] = '\0';
@@ -134,23 +135,39 @@ beg:;
 	}
 	input_num = strtol(input, &end_char, 16);
 	type = input_num & 0x1C000000;
-	type = type >> 26;		
+	type = type >> 26;
 	
 	switch(type) {
 
 		case 0:
+			if (!array_initialized) {
+				printf("Log Not Initialized\n");
+				break;
+			}
 			Readings_array_add_new_value(data_ptr, input_ptr);
 			break;
 
 		case 0x2:
+			if (!array_initialized) {
+				printf("Log Not Initialized\n");
+				break;
+			}
 			Readings_array_average(data_ptr);
 			break;
 
 		case 0x4:
+			if (!array_initialized) {
+				printf("Log Not Initialized\n");
+				break;
+			}
 			Readings_array_max(data_ptr);
 			break;
 
 		case 0x3:
+			if (!array_initialized) {
+				printf("Log Not Initialized\n");
+				break;
+			}
 			Readings_array_min(data_ptr);
 			break;
 
@@ -161,6 +178,13 @@ beg:;
 		case 0x6:
 			printf("Exiting...\n");
 			return 0;
+
+		case 0x7:
+			if (!array_initialized) {
+				printf("Command for initialization received, LogIncrement is: %ld\n", input_num & 0x3FFFFFF);
+				array_initialized = 1;
+			}
+			break;
 
 		default:
 			printf("Input Error\n");
