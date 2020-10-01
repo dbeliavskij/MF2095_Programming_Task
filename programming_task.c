@@ -14,14 +14,13 @@ struct Readings_array {
 	int log_counter;
 	float avg_temp;
 	float avg_hum;
-	struct Readings readings[10];
+	int current_size;
+	struct Readings readings[];
 };
 
-struct Readings_array *Contstructor ()
+struct Readings_array *Contstructor () 
 {
 	struct Readings_array *data = malloc(sizeof(struct Readings_array));
-	data->readings[0].hum = 0;
-	data->readings[0].temp = 0;
 	data->avg_temp = 0;
 	data->avg_hum = 0;
 	data->log_counter = 0;
@@ -29,7 +28,23 @@ struct Readings_array *Contstructor ()
 	data->min_temp = 0;
 	data->max_hum = 0;
 	data->min_hum = 0;
+	data->current_size = 0;
 	return data;
+}
+
+struct Readings_array *Resize_array (struct Readings_array *array, long increment, _Bool init) 
+{
+	array = realloc(array, sizeof(*array) + sizeof(struct Readings) * (increment + array->current_size));
+	array->current_size += increment;
+
+	if (init) {
+		printf("New Log Increment: %ld\n", increment);
+		printf("Current Log Size: %d\n", array->current_size);
+	} else {
+		printf("Log Size Expanded To: %d\n", array->current_size);
+	}
+	
+	return array;
 }
 
 void Deconstructor (struct Readings_array *object)
@@ -37,20 +52,23 @@ void Deconstructor (struct Readings_array *object)
 	free(object);
 }
 
-void Readings_array_add_new_value (struct Readings_array *data_ptr, long *input_ptr)
+struct Readings_array *Readings_array_add_new_value (struct Readings_array *data_ptr, long *input_ptr, long increment)
 {
-	if (data_ptr->log_counter < 10) {
+	if (data_ptr->log_counter >= data_ptr->current_size) {
 
-		data_ptr->readings[data_ptr->log_counter].temp = *input_ptr & 0x1FFF;
-		data_ptr->readings[data_ptr->log_counter].hum = (*input_ptr & 0x3FFE000)>>13;
-		printf("Received Temperature: %d\n", data_ptr->readings[data_ptr->log_counter].temp);
-		printf("Received Humidity: %d\n", data_ptr->readings[data_ptr->log_counter].hum);
-		(data_ptr->log_counter)++;
-	}
-	else {
-		printf("Log Full\n");
+		data_ptr = Resize_array(data_ptr, increment, 0);
+		
 	}
 
+	data_ptr->readings[data_ptr->log_counter].temp = *input_ptr & 0x1FFF;
+	data_ptr->readings[data_ptr->log_counter].hum = (*input_ptr & 0x3FFE000)>>13;
+
+	printf("Received Temperature: %d\n", data_ptr->readings[data_ptr->log_counter].temp);
+	printf("Received Humidity: %d\n", data_ptr->readings[data_ptr->log_counter].hum);
+
+	(data_ptr->log_counter)++;
+
+	return data_ptr;
 }
 
 void Readings_array_average(struct Readings_array *data_ptr)
@@ -127,16 +145,15 @@ void Readings_array_print(struct Readings_array *data_ptr)
 }
 
 int main(int argc, char *argv[])
-{
-	struct Readings_array *data_ptr = Contstructor();
-
+{	
+	struct Readings_array *data_ptr = Contstructor();;
 	char input[20] = { '\0' };
 	long input_num = 0;
 	long type = 0;
 
 	long *input_ptr = &input_num;
 	char *end_char;
-	_Bool array_initialized = 0;
+	long array_initialized = 0;
 	
 beg:;
 	input[0] = '\0';
@@ -154,7 +171,7 @@ beg:;
 				printf("Log Not Initialized\n");
 				break;
 			}
-			Readings_array_add_new_value(data_ptr, input_ptr);
+			data_ptr = Readings_array_add_new_value(data_ptr, input_ptr, array_initialized);
 			break;
 
 		case 0x2:
@@ -191,10 +208,8 @@ beg:;
 			return 0;
 
 		case 0x7:
-			if (!array_initialized) {
-				printf("Command for initialization received, LogIncrement is: %ld\n", input_num & 0x3FFFFFF);
-				array_initialized = 1;
-			}
+			array_initialized = input_num & 0x3FFFFFF;
+			data_ptr = Resize_array(data_ptr, array_initialized, 1);
 			break;
 
 		default:
