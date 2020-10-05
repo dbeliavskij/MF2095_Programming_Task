@@ -38,7 +38,6 @@ struct Readings_array *Resize_array (struct Readings_array *array, long incremen
 	array->current_size += increment;
 
 	if (init) {
-		printf("New Log Increment: %ld\n", increment);
 		printf("Current Log Size: %d\n", array->current_size);
 	} else {
 		printf("Log Size Expanded To: %d\n", array->current_size);
@@ -208,8 +207,15 @@ beg:;
 			return 0;
 
 		case 0x7:
-			array_initialized = input_num & 0x3FFFFFF;
-			data_ptr = Resize_array(data_ptr, array_initialized, 1);
+			if (!array_initialized) {
+				array_initialized = input_num & 0x3FFFFFF;
+				printf("New Log Increment: %ld\n", array_initialized);
+				data_ptr = Resize_array(data_ptr, array_initialized, 1);
+				} else {
+				array_initialized = input_num & 0x3FFFFFF;
+				printf("New Log Increment: %ld\n", array_initialized);
+				printf("Current Log Size: %d\n", data_ptr->current_size);
+				}
 			break;
 
 		default:
